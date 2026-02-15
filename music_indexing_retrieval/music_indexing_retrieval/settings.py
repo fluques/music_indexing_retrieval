@@ -18,9 +18,10 @@ from decouple import Csv
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+os.environ['PANNS_CSV_PATH'] = os.path.join(BASE_DIR, 'panns_data/')
 
 # Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
+# See https://docs.djangoproject.com/en/s6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-+74*t09y6$+%&z9hpy0ql086077zk-dn2d=o_*&bu#(hsd$p%+'
@@ -137,3 +138,5 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 KAFKA_BOOTSTRAP_SERVERS = config('KAFKA_BOOTSTRAP_SERVERS')
 KAFKA_TOPIC = config('KAFKA_TOPIC') 
 KAFKA_GROUP_ID = config('KAFKA_GROUP_ID')
+
+FAISS_INDEX_PATH = os.path.join(BASE_DIR, config('FAISS_INDEX_PATH'))

@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 
 import faiss
 
@@ -27,8 +28,8 @@ class AudioFileListView(viewsets.ModelViewSet):
     queryset = AudioFile.objects.all()
     serializer_class = AudioFileSerializer
 
-    @action(detail=False, methods=['put'],parser_classes=[FileUploadParser],url_path=r'upload')
-    def upload_audio_file(self, request):
+    @action(detail=False, methods=['put'],parser_classes=[FileUploadParser],url_path=r'upload_index')
+    def upload_audio_file_and_index(self, request):
         file_obj = request.data['file']
         # Read the file's content into memory (bytes)
         file_obj.seek(0)
@@ -58,6 +59,47 @@ class AudioFileListView(viewsets.ModelViewSet):
             return JsonResponse({"result": "File uploaded successfully", "id": audio_file.id,"file_path": audio_file.file_name}, status=201)
         return JsonResponse({}, status=400)
     
+    @action(detail=False, methods=['put'],parser_classes=[FileUploadParser],url_path=r'upload')
+    def upload_audio_file(self, request):
+        file_obj = request.data['file']
+        # Read the file's content into memory (bytes)
+        file_obj.seek(0)
+        file_content = file_obj.read()        
+
+        file_path = os.path.join('uploads', file_obj.name)
+        if not os.path.exists(os.path.dirname(file_path)):
+            os.makedirs(os.path.dirname(file_path))
+        saved_path = default_storage.save(file_path, ContentFile(file_content))
+        if saved_path:      
+            return JsonResponse({"result": "File uploaded successfully", "file_path": file_obj.name}, status=201)
+        return JsonResponse({}, status=400)
+    
+    @action(detail=False, methods=['put'],parser_classes=[FileUploadParser],url_path=r'index_uploads')
+    def index_uploads(self, request):
+
+        _, mp3_paths = default_storage.listdir("uploads")
+        indexed_files = []
+        for mp3_path in mp3_paths:
+            file_obj = os.path.join('uploads', mp3_path)
+            file_name = os.path.basename(file_obj)
+            audio_file = AudioFile.objects.create(
+                file_field_name=file_obj,                
+                file_name=file_name,
+                embeddings=False,
+                metadata={}
+
+            )
+            wav_file = self.convert_mp3_to_wav(default_storage.path(file_obj))
+            os.remove(default_storage.path(file_obj))
+            embeddings, audio_segments = self.get_embeddings(audio_file,wav_file)
+            os.remove(wav_file)
+            self.index_embeddings(embeddings,audio_segments)
+            indexed_files.append(file_name)
+
+    
+        return JsonResponse({"result": "File uploaded successfully", "files": indexed_files}, status=201)
+
+
 
     @action(detail=False, methods=['get'],parser_classes=[MultiPartParser],url_path=r'knn_search')
     def knn_search(self, request):
@@ -99,7 +141,7 @@ class AudioFileListView(viewsets.ModelViewSet):
         return JsonResponse({}, status=400)
     
 
-    @action(detail=False, methods=['get'],parser_classes=[MultiPartParser],url_path=r'sava_index')
+    @action(detail=False, methods=['get'],parser_classes=[MultiPartParser],url_path=r'save_index')
     def index_save(self, request):
         faiss_index= get_faiss_index()
         if get_faiss_index is None:
@@ -116,7 +158,13 @@ class AudioFileListView(viewsets.ModelViewSet):
 
         # Convert MP3 to WAV using pydub
         try:
-            sound = AudioSegment.from_mp3(file_path)
+            sound = None
+
+            if file_path.endswith(".mp3"):
+                sound = AudioSegment.from_mp3(file_path)
+            elif file_path.endswith(".flac"):
+                sound = AudioSegment.from_file(file_path, format="flac")
+
             sound.set_frame_rate(44100)
             sound.export(output_file, format="wav")
             print(f"Successfully converted {file_path} to {output_file}")

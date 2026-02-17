@@ -48,46 +48,46 @@ http://127.0.0.1:8989
  ### Upload a mp3 file
 
 ```python 
-    import requests
-    from pathlib import Path
+import requests
+from pathlib import Path
 
-    url = 'http://127.0.0.1:8000/api/audiofile/upload/'
-    file_path = file_path
-    file_name = Path(file_path).name
-    with open(file_path, 'rb') as f:
-        headers={'Content-Disposition': 'attachment; filename=' + file_name}
-        files = {'file':  f} 
-        response = requests.put(url, files=files, headers=headers)
+url = 'http://127.0.0.1:8989/api/audiofile/upload/'
+file_path = file_path
+file_name = Path(file_path).name
+with open(file_path, 'rb') as f:
+    headers={'Content-Disposition': 'attachment; filename=' + file_name}
+    files = {'file':  f} 
+    response = requests.put(url, files=files, headers=headers)
 ``` 
 
  ### Create the index
 
 ```python 
-    import requests
-    url = 'http://127.0.0.1:8000/api/audiofile/index_uploads/' 
-    response = requests.put(url)
+import requests
+url = 'http://127.0.0.1:8989/api/audiofile/index_uploads/' 
+response = requests.put(url)
 ``` 
 
  ### Save the index
 
 ```python 
-    import requests
-    url = 'http://127.0.0.1:8000/api/audiofile/save_index/'
-    requests.get(url)
+import requests
+url = 'http://127.0.0.1:8989/api/audiofile/save_index/'
+requests.get(url)
 ``` 
 
 
 ### Search knn with excerpt of music
 ```python
-    import requests
-    import os
-    url = 'http://127.0.0.1:8000/api/audiofile/knn_search/'
-    file_path = 'query.mp3'
-    with open(file_path, 'rb') as f:
-        headers={'Content-Disposition': 'attachment; filename=' + os.path.basename(file_path)}
-        payload={"knn":3}
-        files = {'file':  f} 
-        response = requests.get(url, data=payload, files=files, headers=headers)
+import requests
+import os
+url = 'http://127.0.0.1:8989/api/audiofile/knn_search/'
+file_path = 'query.mp3'
+with open(file_path, 'rb') as f:
+    headers={'Content-Disposition': 'attachment; filename=' + os.path.basename(file_path)}
+    payload={"knn":3}
+    files = {'file':  f} 
+    response = requests.get(url, data=payload, files=files, headers=headers)
 ```
 
 

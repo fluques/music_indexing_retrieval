@@ -30,7 +30,7 @@ cd music_indexing_retrieval
 ```
 3. Set default settings:
 ```bash
-cp env.sample .env
+cp .env.sample .env
 ```
 4. Run docker-compose file:
 ```bash

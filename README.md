@@ -1,4 +1,4 @@
-# MUSIC RETRIEVAL AND INDEXING
+# Music Indexing and Retrieval
 
 ## Description.
 Dockerized rest API to extract embeddings from music files. Index vector embeddings with Faiss. And query with an excerpt of audio for the nearest neighbors in the index.
@@ -30,7 +30,7 @@ cd music_indexing_retrieval
 ```
 3. Set default settings:
 ```bash
-cp env.default .env
+cp .env.sample .env
 ```
 4. Run docker-compose file:
 ```bash

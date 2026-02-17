@@ -1,0 +1,16 @@
+*.pyc
+__pycache__
+.venv
+.git
+.gitignore
+doc.pdf
+static/
+docker-compose.yaml
+docker-compose-debug.yaml
+Dockerfile
+.dockerignore
+.vscode/
+*.bin
+*.mp3
+db.sqlite3
+migrations/

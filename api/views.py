@@ -19,10 +19,7 @@ from pydub import AudioSegment
 import soundfile as sf
 import librosa
 import numpy as np
-from panns_inference import AudioTagging
 from .utils.faiss_connection import get_faiss_index
-from faiss import IDSelectorBatch
-
 
 class AudioFileListView(viewsets.ModelViewSet):
     queryset = AudioFile.objects.all()
@@ -106,10 +103,8 @@ class AudioFileListView(viewsets.ModelViewSet):
         file_obj = request.FILES['file']
         knn = request.data['knn']
 
-        # Read the file's content into memory (bytes)
         file_obj.seek(0)
-        file_content = file_obj.read()
-        
+        file_content = file_obj.read()        
 
         file_path = os.path.join('uploads', file_obj.name)
         if not os.path.exists(os.path.dirname(file_path)):
@@ -159,11 +154,7 @@ class AudioFileListView(viewsets.ModelViewSet):
         # Convert MP3 to WAV using pydub
         try:
             sound = None
-
-            if file_path.endswith(".mp3"):
-                sound = AudioSegment.from_mp3(file_path)
-            elif file_path.endswith(".flac"):
-                sound = AudioSegment.from_file(file_path, format="flac")
+            sound = AudioSegment.from_mp3(file_path)
 
             sound.set_frame_rate(44100)
             sound.export(output_file, format="wav")
@@ -174,8 +165,7 @@ class AudioFileListView(viewsets.ModelViewSet):
 
         
     def get_embeddings(self,audio_file=None, file_path =None):
-        #model = AudioTagging(checkpoint_path=None, device='cpu') 
-        y, sr = librosa.load(file_path, sr=44100) # Use sr=None to preserve original sample rate
+        y, sr = librosa.load(file_path, sr=44100) 
         print(f"Loaded with librosa: Sample rate = {sr} Hz, Duration = {len(y)/sr:.2f} seconds")
         y =librosa.util.normalize(y)
         audio_segments = []

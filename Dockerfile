@@ -2,7 +2,6 @@
 FROM python:3.13.1-slim
 
 EXPOSE 8000
-
 # Keeps Python from generating .pyc files in the container
 ENV PYTHONDONTWRITEBYTECODE=1
 
@@ -11,11 +10,21 @@ ENV PYTHONUNBUFFERED=1
 
 # Install pip requirements
 COPY requirements.txt .
-RUN python -m pip install -r requirements.txt
-RUN apt update && apt install git
-RUN git clone https://github.com/fluques/panns_inference.git
-RUN python -m pip install panns-inference/.
+RUN python -m pip install --no-cache-dir -r  requirements.txt
+
+RUN apt-get clean && apt-get -y update
+RUN apt-get -y install nginx systemctl
+
+RUN apt-get -y install ffmpeg
+
 
 WORKDIR /app
 COPY . /app
 
+
+
+CMD ["/bin/sh", "-c", "systemctl start nginx && \
+python manage.py makemigrations && \
+python manage.py migrate && \
+python manage.py collectstatic --noinput && \
+gunicorn --bind 0.0.0.0:8000 music_indexing_retrieval.wsgi:application"]

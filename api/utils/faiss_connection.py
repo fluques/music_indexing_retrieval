@@ -34,3 +34,15 @@ def get_faiss_index():
     return index
 
 
+def reload_faiss_index():
+    global index 
+    if os.path.exists(settings.FAISS_INDEX_PATH):
+        print(f"Loading FAISS index from {settings.FAISS_INDEX_PATH}")
+        try:
+            index= faiss.read_index(settings.FAISS_INDEX_PATH)
+            return index
+        except Exception as e:
+            print(f"Error loading index: {e}")
+    return None
+
+

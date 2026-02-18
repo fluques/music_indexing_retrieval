@@ -19,7 +19,7 @@ from pydub import AudioSegment
 import soundfile as sf
 import librosa
 import numpy as np
-from .utils.faiss_connection import get_faiss_index
+from .utils.faiss_connection import get_faiss_index, reload_faiss_index
 
 class AudioFileListView(viewsets.ModelViewSet):
     queryset = AudioFile.objects.all()
@@ -74,7 +74,9 @@ class AudioFileListView(viewsets.ModelViewSet):
     @action(detail=False, methods=['put'],parser_classes=[FileUploadParser],url_path=r'index_uploads')
     def index_uploads(self, request):
 
-        _, mp3_paths = default_storage.listdir("uploads")
+        asyncio.run(send_kafka_message({}))
+
+        '''_, mp3_paths = default_storage.listdir("uploads")
         indexed_files = []
         for mp3_path in mp3_paths:
             file_obj = os.path.join('uploads', mp3_path)
@@ -83,6 +85,30 @@ class AudioFileListView(viewsets.ModelViewSet):
                 file_field_name=file_obj,                
                 file_name=file_name,
                 embeddings=False,
+                metadata={}
+
+            )
+            wav_file = self.convert_mp3_to_wav(default_storage.path(file_obj))
+            os.remove(default_storage.path(file_obj))
+            embeddings, audio_segments = self.get_embeddings(audio_file,wav_file)
+            os.remove(wav_file)
+            self.index_embeddings(embeddings,audio_segments)
+            indexed_files.append(file_name)'''
+
+    
+        return JsonResponse({"result": "Begin indexing files successfully"}, status=201)
+
+
+    def index_uploads_sync(self):
+        _, mp3_paths = default_storage.listdir("uploads")
+        indexed_files = []
+        for mp3_path in mp3_paths:
+            file_obj = os.path.join('uploads', mp3_path)
+            file_name = os.path.basename(file_obj)
+            audio_file = AudioFile.objects.create(
+                file_field_name=file_obj,                
+                file_name=file_name,
+                embeddings=True,
                 metadata={}
 
             )
@@ -139,12 +165,15 @@ class AudioFileListView(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'],parser_classes=[MultiPartParser],url_path=r'save_index')
     def index_save(self, request):
         faiss_index= get_faiss_index()
-        if get_faiss_index is None:
+        if faiss_index is None:
             return
         faiss.write_index(faiss_index,settings.FAISS_INDEX_PATH)
         return JsonResponse({"results":"index saved succesfully"}, status=201)
     
-
+    @action(detail=False, methods=['get'],parser_classes=[MultiPartParser],url_path=r'reload_index')
+    def reload_index(self, request):
+        faiss_index= reload_faiss_index()
+        return JsonResponse({"results":"index reloaded succesfully"}, status=201)
 
     def convert_mp3_to_wav(self, file_path):
 

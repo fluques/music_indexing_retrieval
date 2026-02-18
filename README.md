@@ -47,7 +47,8 @@ http://127.0.0.1:8989
 
  ### Upload a mp3 file
 
-```python 
+```python
+#for each mp3 file upload the files like this:
 import requests
 from pathlib import Path
 
@@ -60,7 +61,7 @@ with open(file_path, 'rb') as f:
     response = requests.put(url, files=files, headers=headers)
 ``` 
 
- ### Create the index
+ ### Create the index with the uploaded files
 
 ```python 
 import requests
@@ -68,11 +69,11 @@ url = 'http://127.0.0.1:8989/api/audiofile/index_uploads/'
 response = requests.put(url)
 ``` 
 
- ### Save the index
+ ### Load the index after index creation
 
 ```python 
 import requests
-url = 'http://127.0.0.1:8989/api/audiofile/save_index/'
+url = 'http://127.0.0.1:8989/api/audiofile/reload_index/'
 requests.get(url)
 ``` 
 
